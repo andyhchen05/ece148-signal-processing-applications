@@ -1,0 +1,228 @@
+\documentclass{article}
+\usepackage{amsmath, amssymb, tikz}
+
+\title{ECE148: Signal Processing Applications \\ 
+    \large Assignment 1: Signal Sampling and Aliasing (Part A)}
+\author{Andy Chen}
+\date{April 2026}
+
+\begin{document}
+
+\maketitle
+
+\section{Orthogonal Decomposition}
+
+Given a low-pass signal $f(t)$ bandlimited to 
+$\left[-\frac{\omega_0}{2}, \frac{\omega_0}{2}\right]$, sampled with spacing $\Delta t$, producing samples $f(n\Delta t)$.
+
+\subsection*{Fourier Representation}
+
+The Fourier transform is:
+\[
+F(j\omega) &= \sum_{n=-\infty}^{\infty} f_n e^{-j\omega n\Delta t}
+\]
+
+with coefficients:
+\[
+f_n = \frac{1}{\omega_0} \int_{-\frac{\omega_0}{2}}^{\frac{\omega_0}{2}} 
+F(j\omega)e^{j\omega n\Delta t} \, d\omega
+\]
+
+The inverse Fourier transform is:
+\[
+f(t) = \frac{1}{2\pi} \int_{-\infty}^{\infty} F(j\omega)e^{j\omega t} \, d\omega
+\]
+
+Since $f(t)$ is bandlimited:
+\[
+f(n\Delta t) = \frac{1}{2\pi} \int_{-\frac{\omega_0}{2}}^{\frac{\omega_0}{2}} 
+F(j\omega)e^{j\omega n\Delta t} \, d\omega
+\]
+
+Comparing expressions, we obtain:
+\[
+f_n = \frac{2\pi}{\omega_0} f(n\Delta t) = \Delta t \, f(n\Delta t)
+\]
+
+
+Substituting into the inverse Fourier transform:
+\[
+f(t)
+&= \frac{1}{2\pi} \int_{-\frac{\omega_0}{2}}^{\frac{\omega_0}{2}}
+\left[
+\sum_{n=-\infty}^{\infty} \Delta t\, f(n\Delta t)e^{-j\omega n\Delta t}
+\right]
+e^{j\omega t} \, d\omega
+\]
+\[
+&= \sum_{n=-\infty}^{\infty} f(n\Delta t)
+\frac{\Delta t}{2\pi}
+\int_{-\frac{\omega_0}{2}}^{\frac{\omega_0}{2}}
+e^{j\omega (t-n\Delta t)} \, d\omega
+\]
+
+Evaluating the integral:
+\[
+\frac{\Delta t}{2\pi}
+\int_{-\frac{\omega_0}{2}}^{\frac{\omega_0}{2}}
+e^{j\omega (t-n\Delta t)} \, d\omega
+= \text{sinc}\left(\frac{\omega_0}{2}(t-n\Delta t)\right)
+\]
+
+Thus:
+\[
+f(t) = \sum_{n=-\infty}^{\infty} f(n\Delta t)\,\psi_n(t)
+\]
+
+where:
+\[
+\psi_n(t) = \text{sinc}\left(\frac{\omega_0}{2}(t-n\Delta t)\right)
+\]
+
+\subsection*{Orthogonality of Basis Functions}
+
+Consider:
+\[
+\langle \psi_n, \psi_m \rangle
+= \int_{-\infty}^{\infty} \psi_n(t)\psi_m^*(t)\,dt
+\]
+
+Using Parseval’s theorem:
+\[
+\langle \psi_n, \psi_m \rangle
+= \frac{\Delta t^2}{2\pi}
+\int_{-\frac{\omega_0}{2}}^{\frac{\omega_0}{2}}
+e^{-j\omega (m-n)\Delta t} \, d\omega
+\]
+
+Evaluating:
+\[
+= \Delta t \,
+\text{sinc}\left(\frac{\omega_0}{2}(m-n)\Delta t\right)
+\]
+
+Using the sampling condition $\omega_0 \Delta t = 2\pi$:
+\[
+= \Delta t \, \text{sinc}(\pi (m-n))
+\]
+
+Therefore:
+\[
+\langle \psi_n, \psi_m \rangle =
+\begin{cases}
+\Delta t, & m = n \\
+0, & m \neq n
+\end{cases}
+\]
+
+
+\section{Application of Aliasing: Time-Domain Partition}
+
+The time-domain function
+\[
+f(t) = \sum_{n=1}^{N} f_n(t)
+\]
+is a low-pass signal partitioned into \(N\) sub-components. The frequency spectra of \(f(t)\) and all sub-components \(f_n(t)\) span from \(-\frac{\omega_0}{2}\) to \(\frac{\omega_0}{2}\), giving a total bandwidth of \(B = \omega_0\).
+
+Modulating each of the \(N\) sub-components with an extra frequency term \(e^{jk_n \omega_0 t}\) yields:
+\[
+\hat{f}(t) = \sum_{n=1}^{N} f_n(t) \, e^{j k_n \omega_0 t}
+\]
+
+In the frequency domain, this corresponds to a shift:
+\[
+\hat{F}(j\omega) = \sum_{n=1}^{N} F_n\big(j(\omega - k_n \omega_0)\big)
+\]
+
+After sampling \(\hat{f}(t)\) with spacing \(\Delta t\) (sampling frequency \(\omega_0 = \frac{2\pi}{\Delta t}\)), the spectrum becomes:
+\[
+\hat{F}_s(j\omega)
+= \sum_{n=1}^{N} \sum_{m=-\infty}^{\infty} F_n\big(j(\omega - (k_n+m)\omega_0)\big)
+\]
+
+Passing the sampled signal through an ideal low-pass filter with cutoff \(|\omega| \le \frac{\omega_0}{2}\) selects only the terms where:
+\[
+\omega - (k_n + m)\omega_0 \in \Big[-\frac{\omega_0}{2}, \frac{\omega_0}{2}\Big]
+\]
+which is only possible when \(k_n + m = 0\), resulting in \(m = -k_n\). Therefore, all other aliases are removed, and the spectrum collapses to:
+\[
+\hat{F}_{LP}(j\omega) = \sum_{n=1}^{N} F_n(j\omega) = F(j\omega)
+\]
+
+Reconstructing the signal returns the original unmodulated signal:
+\[
+\hat{f}_{out}(t) = f(t)
+\]
+
+The original signal \(f(t)\) is perfectly recovered. The integer frequency shifts \(k_n \omega_0\) are completely removed by aliasing and low-pass filtering.
+
+
+\section{Application of Aliasing: Frequency-Domain Partition}
+
+Consider a low-pass periodic function \(g(t)\), which can be represented by its Fourier series expansion:
+\[
+g(t) = \sum_{n=-N}^{N} G_n \, e^{j n \omega_x t}
+\]
+where \(\omega_x\) is the fundamental frequency and \(G_n\) are the Fourier coefficients.  
+The frequency spectrum of \(g(t)\) spans:
+\[
+[-N \omega_x, +N \omega_x]
+\]
+giving a total bandwidth \(B = 2N \omega_x < \omega_0\).
+
+We now modulate each of the \(2N+1\) Fourier components with an extra single-frequency term \(e^{j k_n \omega_0 t}\), forming:
+\[
+\hat{g}(t)  
+= \sum_{n=-N}^{N} G_n \, e^{j (n \omega_x + k_n \omega_0) t}
+\]
+where \(k_n\) are arbitrary integers.
+
+\subsection*{(a) Fourier Spectrum of \(g(t)\)}
+The Fourier spectrum of \(g(t)\) consists of discrete impulses located at
+\[
+\omega = n \omega_x, \quad n = -N, -N+1, \dots, N-1, N,
+\]
+with amplitudes \(G_n\).
+
+\begin{figure}[h!]
+\centering
+\begin{tikzpicture}[scale=1.2]
+
+% ---------- Part (a): Original spectrum g(t) ----------
+\draw[->] (-5,0) -- (5,0) node[right] {$\omega$};
+\draw[->] (0,0) -- (0,3) node[above] {Amplitude};
+
+% Original impulses
+\foreach \n in {-3,-2,-1,0,1,2,3} {
+    \draw[thick,blue] (\n,0) -- (\n,2);
+    \node[blue,below] at (\n,0) {$\n \omega_x$};
+}
+
+
+\end{tikzpicture}
+\end{figure}
+
+\subsection*{(b) Fourier Spectrum of \(\hat{g}(t)\)}
+Modulating each component by \(e^{j k_n \omega_0 t}\) shifts each impulse:
+\[
+\omega = n \omega_x + k_n \omega_0, \quad n = -N, \dots, N
+\]
+The spectrum remains discrete, but each spike is now shifted by an integer multiple of \(\omega_0\).  
+
+\subsection*{(c) Sampling and Low-Pass Filtering}
+Sampling \(\hat{g}(t)\) with spacing \(\Delta t\) (\(\omega_s = 2\pi/\Delta t = \omega_0\)) produces periodic copies of the spectrum in frequency, spaced by \(\omega_0\):
+\[
+\hat{G}_s(j\omega) = \sum_{m=-\infty}^{\infty} \sum_{n=-N}^{N} G_n \, \delta\big(\omega - (n \omega_x + k_n \omega_0) - m \omega_0 \big)
+\]
+
+Passing this through an ideal low-pass filter with cutoff \(|\omega| \le \omega_0/2\) keeps only the components that satisfy
+\[
+n \omega_x + k_n \omega_0 + m \omega_0 \in \left[-\frac{\omega_0}{2}, \frac{\omega_0}{2}\right]
+\]
+
+Since \(B = 2 N \omega_x < \omega_0\), each \(n \omega_x\) lies within \([-\omega_0/2, \omega_0/2]\) after choosing \(m = -k_n\). Therefore, all frequency shifts by \(k_n \omega_0\) are folded back into the baseband via aliasing. The low-pass filter output spectrum becomes:
+\[
+\hat{G}_{LP}(j\omega) = \sum_{n=-N}^{N} G_n \, \delta(\omega - n \omega_x) = G(j\omega)
+\]
+
+\end{document}
