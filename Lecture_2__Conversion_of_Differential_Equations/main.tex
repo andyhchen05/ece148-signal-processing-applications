@@ -1,0 +1,202 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+
+\title{Lecture 2: Conversion of Differential Equations}
+\author{Andy Chen}
+\date{May 2026}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+A linear and time-invariant system can be represented in various forms, and among them, three are widely applied in system analysis. They are:
+\begin{enumerate}
+    \item \textbf{Differential or Difference Equation}
+    \item \textbf{Impulse Response}
+    \item \textbf{Transfer Function}
+\end{enumerate}
+In order to take advantage of digital computing, system analysis in continuous time is often converted to an \textit{equivalent discrete system}. The equivalence is established by matching 1) the defining differential equation and the difference equation, 2) the impulse responses, or 3) the transfer functions. In this section, we describe the first technique for the formulation of a discrete system, for which the difference equation is matched to the defining differential equation of the continuous-time system 
+
+\section{The Difference Equation}
+The fundamental element of a differential equation is the differentiation operator, which is defined as:
+\[
+\frac{d}{dt}f(t)= \lim_{\Delta t\rightarrow0} \frac{f(t) - f(t-\Delta t)}{\Delta t}
+\]
+If \(\Delta t\) is sufficiently small, the derivative of the function \(f(t)\) can be approximated as:
+\[
+\frac{d}{dt}f(t) \approx \frac{1}{\Delta t}(f(t)-f(t-\Delta t))
+\]
+This means the differentiation operator in a differential equation can be substituted by an
+equivalent operator in the discrete-time format:
+\[
+\frac{d}{dt} = D \rightarrow \frac{1}{\Delta t}(1-z^{-1})
+\]
+At the beginning of the process of determining the solution to a differential equation, we often factor out the polynomial of the differentiation operator, and each first-order unit of the factorization is in the form:
+\[
+(D-a)y(t)=x(t)
+\]
+This operator has one simple pole at \(s = a\). We can Laplace transform both sides of the equation, and it becomes:
+\[
+(s-a)Y(s)=X(s)
+\]
+Thus, the equivalent operator in the discrete-time format is:
+\[
+(\frac{1}{\Delta t}(1-z^{-1})-a)\hat{Y}(z)=\hat{X}(z)
+\]
+which shows one single pole at:
+\[
+z=z_0=\frac{1}{1-a\Delta t}
+\]
+The relocation of the pole from the \textit{s-plane} to the \textit{z-plane} can be formulated with this simple relationship:
+\[
+z=\frac{1}{1-s\Delta t}
+\]
+
+\[
+\renewcommand{\arraystretch}{2}
+\begin{array}{c c}
+\hline
+\textbf{Conversion of Operators} & \textbf{Relocation of Poles} \\
+\hline
+D \rightarrow \dfrac{1}{\Delta t}(1-z^{-1})
+&
+z = \dfrac{1}{1-s\Delta t}
+\\
+\end{array}
+\]
+
+\section{Pole Relocation}
+To fully understand the applicability and accuracy of this conversion technique, we first examine the formulation of the mapping in greater detail.
+\begin{enumerate}
+    \item For the poles \(s=0\) on the \(s\)-plane, the pole of the equivalent discrete system is at \(z=1\). This means the DC component in the continuous-time domain maps to the DC term in the discrete-time domain properly.
+    \item At the limits of the \(j\omega\) axis of the \(s\)-plane, the poles \(s\pm j\infty\) map to \(z=0\).
+    \item According to the mapping scheme, the \(j\omega\) axis of the \(s\)-plane is mapped to:
+    \[
+    z = \frac{1}{1-s\Delta t}=\frac{1}{j\omega\Delta t}
+    \]
+    Rearranging the term, we can rewrite it in the form:
+    \[
+    z = \bigg(\frac{1}{2}\bigg)\frac{(1+j\omega\Delta t)+(1-j\omega\Delta t)}{1-j\omega\Delta t}
+    \]
+    \[
+    = \frac{1}{2}+\bigg(\frac{1}{2}\bigg)\frac{1+j\omega\Delta t}{1-j\omega\Delta t}
+    \]
+    \[
+    = \frac{1}{2} +\frac{1}{2}e^{j\psi}
+    \]
+    It is a circle centered at \(z=\frac{1}{2}\), with radius \(\frac{1}{2}\):
+    \[
+    z-\frac{1}{2}=\frac{1}{2}e^{j\psi}
+    \]
+    This means the \(j\omega\) axis of the \(s\)-plane is mapped to a circle, but it is not the unit circle. And the mapping of the phase term is in the form:
+    \[
+    \psi=2\tan^{-1}(\omega\Delta t)
+    \]
+    \item For an arbitrary pole location at \(s=\alpha+j\omega\), the corresponding pole on the \(z\)-plane is:
+    \[
+    z=\frac{1}{1-s\Delta t}=\frac{1}{1-(\alpha+j\omega)\Delta t}
+    \]
+    \[
+    z = \bigg(\frac{1}{2}\bigg)\frac{(1+(\alpha+j\omega)\Delta t)+(1-(\alpha+j\omega)\Delta t)}{1-(\alpha+j\omega)\Delta t}
+    \]
+    \[
+    = \frac{1}{2}+\bigg(\frac{1}{2}\bigg)\frac{1+j(\alpha+j\omega)\Delta t}{1-j(\alpha+j\omega)\Delta t}
+    \]
+    \[
+    = \frac{1}{2} +\frac{\rho}{2}e^{j\psi}
+    \]
+    The corresponding pole on the \(z\)-plane is along a circle, centered at \(z=\frac{1}{2}\), with radius \(\frac{\rho}{2}\):
+    \[
+    z-\frac{1}{2}=\frac{\rho}{2}e^{j\psi}
+    \]
+    Thus, for a pole on the \textit{left-half} \(s\)-plane, \(\alpha<0\), we have:
+    \[
+    \rho=\sqrt{\frac{(1+\alpha\Delta t)^2+(\omega\Delta t)^2}{(1-\alpha\Delta t)^2+(\omega\Delta t)^2}}<1
+    \]
+    Then we have:
+    \[
+    |z|=\bigg|\frac{1}{2} +\frac{\rho}{2}e^{j\psi}\bigg|<\frac{1}{2}+\frac{\rho}{2}<1
+    \]
+    This suggests the left half of the \(s\)-plane is mapped to an area inside of the unit circle of the \(z\)-plane. Thus, system stability is retained through the mapping.
+\end{enumerate}
+
+\section{Example}
+Consider the simple case of the defining differential equation of a first-order system:
+\[
+\frac{d}{dt}y(t)-ay(t)=Ax(t)
+\]
+The system has one pole at \(s=a\), and the transfer function is:
+\[
+H_a(s)=\frac{A}{s-a}
+\]
+And the impulse response is:
+\[
+h_a(t)=Ae^{at}u(t)
+\]
+According to the conversion formula, the equivalent description in the discrete form is:
+\[
+\bigg(\frac{1}{\Delta t}\bigg)[y(n)-y(n-1)]-ay(n)=Ax(n)
+\]
+which leads to:
+\[
+(1-a\Delta t)y(n)-y(n-1)=A\Delta t\ x(n)
+\]
+Its transfer function is thus:
+\[
+\hat{H}_d(z)=\frac{A\Delta t\ z}{(1-a\Delta t)z-1}=\frac{A\Delta t}{1-a\Delta t}\cdot\frac{z}{z-\frac{1}{1-a\Delta t}}
+\]
+And the impulse response is in the form:
+\[
+h_d(n)=\frac{A\Delta t}{1-a\Delta t}\bigg(\frac{1}{1-a\Delta t}\bigg)^nu(n)
+\]
+\newpage
+\section{Summary}
+\begin{enumerate}
+    \item This conversion technique is achieved by approximating the differentiation operators with weight-shift operators to produce the difference equation of the equivalent discrete system.
+    \item The \(j\omega\)-axis is mapped to a displaced circle of radius \(\frac{1}{2}\) inside the unit circle.
+    \item The mapping retains system stability.
+    \item Sample spacing \(\Delta t\) governs the accuracy of the approximation.
+    \item As an example, the corresponding components of the continuous-time system and its discrete equivalent are tabulated as follows:
+\end{enumerate}
+\[
+\renewcommand{\arraystretch}{2}
+\setlength{\arraycolsep}{14pt}
+
+\begin{array}{|c|c|}
+\hline
+\textbf{Continuous-Time System} &
+\textbf{Discrete-Time System} \\
+\hline
+
+\text{Differential equation} &
+\text{Difference equation} \\
+
+\dfrac{d}{dt}y(t)-ay(t)=Ax(t)
+&
+(1-a\Delta t)\,y(n)-y(n-1)=A\Delta t\,x(n)
+\\
+\hline
+
+\text{Transfer function} &
+\text{Transfer function} \\
+
+H_a(s)=\dfrac{A}{s-a}
+&
+\hat{H}_d(z)=\frac{A\Delta t}{1-a\Delta t}\cdot\frac{z}{z-\frac{1}{1-a\Delta t}}
+\\
+\hline
+
+\text{Impulse response} &
+\text{Impulse response} \\
+
+h_a(t)=Ae^{at}u(t)
+&
+h_d(n)=\frac{A\Delta t}{1-a\Delta t}\bigg(\frac{1}{1-a\Delta t}\bigg)^nu(n)
+\\
+\hline
+\end{array}
+\]
+
+\end{document}
