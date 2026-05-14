@@ -1,0 +1,189 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+
+\title{Lecture 1: Signal Sampling and Aliasing}
+\author{Andy Chen}
+\date{May 2026}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+Signal sampling is the gateway from the continuous-time signal analysis and processing to the discrete domain. We will examine the basic procedures and requirements for signal sampling and reconstruction of low-pass filters.
+
+\section{The Sampling Function}
+The standard sampling function is in the form:
+\[
+s(t) = \sum_{n=-\infty}^{\infty} \delta(t-n\Delta t)
+\]
+It is an infinite sequence of uniformly spaced impulse functions. The sample spacing is \(\Delta t\). The value \(\frac{1}{\Delta t}\) is called the \textit{sampling frequency}, or sampling rate, with the unit \textit{Hz}. Because it is uniformly spaced, it can be regarded as a periodic function, with period \(\Delta t\). Thus, it can be represented in the form of a Fourier series expansion,
+\[
+s(t) = \sum_{m=-\infty}^{\infty} S_m e^{jm\omega_0t}
+\]
+of which the fundamental frequency is:
+\[
+\omega_0 = \frac{2\pi}{\Delta t}
+\]
+Then the Fourier coefficients of the expansion can be obtained:
+\[
+S_m = \frac{1}{\Delta t} \int_{-\Delta t/2}^{\Delta t/2} s(t) e^{-jm\omega_0t}dt
+\]
+\[
+= \frac{1}{\Delta t} \int_{-\Delta t/2}^{\Delta t/2} \delta(t) e^{-jm\omega_0t}dt
+\]
+\[
+= \frac{1}{\Delta t}
+\]
+As a result, we can now rewrite the sampling function as:
+\[
+s(t) = \sum_{m=-\infty}^{\infty} \frac{1}{\Delta t} e^{jm\omega_0t}
+\]
+It is important to note that the Fourier coefficients of the expansion are constant, and it is governed by the sampling frequency. Now, if we Fourier transform both sides of the equation, it becomes:
+\[
+S(j\omega) = \sum_{m=-\infty}^{\infty} \frac{1}{\Delta t} 2\pi \delta(\omega-m\omega_0)
+\]
+\[
+= \sum_{m=-\infty}^{\infty} \omega_0 \ \delta(\omega-m\omega_0)
+\]
+This suggests that the spectrum of the sampling function is also an infinite sequence of uniformly spaced impulse functions, with the amplitude \(\omega_0\). The spacing of the impulse train is also \(\omega_0\), governed by the sampling frequency:
+\[
+\Delta\omega = \omega_0 = \frac{2\pi}{\Delta t}
+\]
+We should point out an interesting feature that both the time-domain waveform and the spectrum of the sampling function are in the form of a sequence of impulse functions. The sampling frequency governs the spacing in both domains, and the product of the spacing is constant:
+\[
+\Delta\omega\ \Delta t = 2\pi
+\]
+
+\section{Signal Samping}
+Suppose the time-domain function \(f(t)\) is a low-pass signal with the highest frequency \(\omega_m\). The spectral coverage is:
+\[
+|\omega| \leq \omega_m
+\]
+The sampling of the waveform can be described as a simple multiplication process:
+\[
+f_s(t) = f(t) \ s(t)
+\]
+\[
+= f(t) \sum_{m=-\infty}^{\infty} \delta(t-n\Delta t)
+\]
+\[
+= \sum_{m=-\infty}^{\infty} f(n\Delta t) \ \delta(t-n\Delta t)
+\]
+This procedure converts a time function \(f(t)\) to a discrete sequence \(f(n\Delta t)\). According to the convolution property, the Fourier spectrum of the sampled waveform is the result of a
+convolution in the frequency domain:
+\[
+F_s(j\omega) = \frac{1}{2\pi}F(j\omega)*S(j\omega)
+\]
+\[
+= \frac{1}{2\pi}\omega_0 \sum_{m=-\infty}^{\infty}F(j(\omega-m\omega_0))
+\]
+\[
+= \frac{1}{\Delta t} \sum_{m=-\infty}^{\infty}F(j(\omega-m\omega_0))
+\]
+This means the spectrum of the sampled waveform is a periodic function. It is the spectrum
+of the original signal \(f(t)\), repeated with a period \(\omega_0\). If we wish to retain the information content of the original signal, the separation needs to be sufficiently large to accommodate the bandwidth of the low-pass signal:
+\[
+\omega_0 \geq 2\omega_m
+\]
+This formula is known as the \textit{Nyquist criterion}. It means the sampling frequency must be at least twice the highest frequency of the low-pass signal in order to retain the full information content.
+
+\section{Signal Reconstruction}
+Because the Fourier spectrum of the sampled signal is a periodic function, we can recover
+the entire information content from just one period. For simplicity, we can select the
+period:
+\[
+-\frac{1}{2}\omega_0 \leq \omega \leq \frac{1}{2}\omega_0
+\]
+Since the spectrum gained a factor of \(\frac{1}{\Delta t}\) during the sampling process, we place \(\Delta t\) to the amplitude of the ideal low-pass filter for normalization purposes:
+\[
+H(j\omega) = \begin{cases}
+\Delta t & |\omega| \leq \frac{\omega_0}{2} \\
+0 & \text{otherwise}
+\end{cases}
+\]
+Utilizing the duality principle, we find the impulse response of the low-pass filter as:
+\[
+h(t) = \operatorname{sinc}\bigg(\frac{\omega_0 t}{2}\bigg)
+\]
+In the time domain, the recovery process is in the form of a convolution of the sampled
+waveform with the impulse response of the low-pass filter:
+\[
+f_s(t)*g(t) = f_s(t)*\operatorname{sinc}\bigg(\frac{\omega_0 t}{2}\bigg)
+\]
+\[
+= \sum_{n=-\infty}^{\infty}f(n\Delta t)\operatorname{sinc}\bigg(\frac{\omega_0 (t-n\Delta t)}{2}\bigg)
+= f(t)
+\]
+This means the original function \(f(t)\) can be reconstructed in the form of a superposition of a set of orthogonal components:
+\[
+f(t) = \sum_{n=-\infty}^{\infty} f(n\Delta t) \psi_n(t)
+\]
+\[
+= \sum_{n=-\infty}^{\infty}f(n\Delta t)\operatorname{sinc}\bigg(\frac{\omega_0 (t-n\Delta t)}{2}\bigg)
+\]
+where the orthogonal basis functions are in the form of:
+\[
+\psi_n(t)=\operatorname{sinc}\bigg(\frac{\omega_0 (t-n\Delta t)}{2}\bigg)
+\]
+The \textit{n}-th component of the reconstructed waveform \(f(n\Delta t)\psi_n(t)\), is a function \(\operatorname{sinc}(\frac{\omega_0 t}{2})\),
+centered at \(t = n\Delta t\), with magnitude \(f(n\Delta t)\). Thus, the sampled values of the function,
+\({f(n\Delta t)}\), are the coefficients of the orthogonal decomposition of \(f(t)\).
+\\
+\\
+It is also interesting to make observations of the function \(\psi_n(t)\). First, it is a low-pass waveform, with the total bandwidth \(\omega_0\). If we sample the function with a sample spacing \(\Delta t\), it picks up the value at \(1\), at \(t = n\Delta t\), which is the only non-zero value of the sample sequence. The rest of the samples are zero. This points out the unique link between the sampling function \(\delta (t-n\Delta t)\) and its corresponding orthogonal component \(\psi_n(t)\).
+
+\section{Aliasing}
+Over the year, in the instruction of signal sampling and recovery, aliasing was only
+mentioned briefly, in the form of undesired distortion. In fact, how signals alias due to
+sampling is an interesting subject. Basically, aliasing means the ambiguity in the form of
+repetition introduced by sampling. So, in this section, the effects of aliasing are examined
+carefully in order to fully understand the nature of signal sampling.
+\\
+\\
+First, we examine the effects of sampling. Consider the coherent waveform with a single
+frequency \(\omega = \omega_x\):
+\[
+f(t) = Ae^{j\omega t}
+\]
+Before the sampling process, the spectrum is one single peak at the frequency \(\omega = \omega_x\):
+\[
+F(j\omega)=2\pi\delta(\omega-\omega_x)
+\]
+Then we recognize that the recovered waveform will be within the frequency band:
+\[
+-\frac{1}{2}\omega_0 \leq \omega \leq \frac{1}{2}\omega_0
+\]
+because of the use of the low-pass filter. The total range of the low-pass frequency band for signal recovery is \(\omega_0\). If \(\omega_x\) is not within the band, aliasing occurs and the original frequency \(\omega_x\) will be mapped to a different frequency \(\omega_y\) within the interval \([-\frac{1}{2}\omega_0, \frac{1}{2}\omega_0]\):
+\[
+-\frac{1}{2}\omega_0 \leq \omega_y \leq \frac{1}{2}\omega_0
+\]
+And the relationship between \(\omega_x\) and \(\omega_y\) is:
+\[
+\omega_x = \omega_y + m\omega_0
+\]
+This equation leads to:
+\[
+\frac{\omega_x}{\omega_0} = \frac{\omega_y}{\omega_0} + m
+\]
+Because \(\frac{\omega_y}{\omega_0}\) is bounded between \(-\frac{1}{2}\) and \(\frac{1}{2}\):
+\[
+-\frac{1}{2} \leq \frac{\omega_y}{\omega_0} \leq \frac{1}{2}
+\]
+\(m\) is the nearest integer of the ratio \(\frac{\omega_x}{\omega_0}\). This means we need to determine the integer \(m\), and the aliased frequency will be identified subsequently.
+
+\newpage
+
+\section*{Summary}
+\begin{enumerate}
+    \item The sampling function is an infinite sequence of impulse functions. The spacing of the
+    array is \(\Delta t\).
+    \item The value \(\frac{1}{\Delta t}\) is known as the sampling frequency. 
+    \item The Fourier spectrum of the sampling function is also an infinite sequence of impulse
+    functions. The spacing is \(\Delta\omega  = \frac{2\pi}{\Delta t}\).
+    \item For aliasing-free sampling, the \textit{Nyquist criterion} indicates that the sampling frequency must be twice the highest frequency of the low-pass signal.
+    \item The kernel for signal recovery is \(\operatorname{sinc}(\frac{\omega_0 t}{2})\), which is a low-pass waveform with cut-off frequency at \(\pm \frac{\omega_0}{2}\).
+\end{enumerate}
+
+\end{document}
