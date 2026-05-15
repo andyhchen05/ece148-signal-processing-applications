@@ -1,0 +1,207 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{enumitem}
+
+\title{Lecture 3: Impulse Invariance}
+\author{Andy Chen}
+\date{May 2026}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+The impulse invariance conversion method is to match the impulse response of the equivalent discrete system to the impulse response of the analog system. Mathematically, it means the impulse response of the discrete system is the sampled version of the impulse response of the analog system:
+\[
+\hat{h}_d(n)=h_d(n\Delta t)=h_a(t)|_{t=n\Delta t}
+\]
+where \(h_a(t)\) is the impulse response of the analog system, \(\Delta t\) is the sample spacing, and \(\hat{h}_d(n)\) is the impulse response of the equivalent discrete system. 
+\\
+\\
+Now we shift the focus to the simple relationship:
+\[
+\mathcal{L}^{-1}\bigg\{\frac{A}{s-a}\bigg\} = Ae^{at} u(t)
+\]
+The \textit{single-node} waveform has amplitude \(A\) and one pole at \(s_0=A\). If we sample this waveform with sample spacing \(\Delta t\), the discrete equivalent of the waveform is:
+\[
+Ae^{at}u(t) \longleftrightarrow Ae^{an\Delta t}u(n) 
+\]
+After minor rearrangements, it is in the form:
+\[
+Ae^{an\Delta t}u(n) = A(e^{a\Delta t})^nu(n)
+\]
+The \(z\)-transform of the sequence is:
+\[
+\mathcal{Z}\{A(e^{a\Delta t})^nu(n)\} = A\frac{z}{z-e^{a\Delta t}} = A\frac{z}{z-z_0}
+\]
+which is also a single-node sequence with amplitude \(A\) and one single pole at:
+\[
+z=z_0=e^{a\Delta t}
+\]
+For the case of a causal analog system with impulse response \(h_a(t)\):
+\[
+h_a(t)=A_1e^{s_1t}+A_2e^{s_2t}+\dots+A_Ne^{s_Nt}
+\]
+The corresponding transfer function is:
+\[
+H_a(s)=\frac{A_1}{s-s_1}+\frac{A_2}{s-s_2}+\dots+\frac{A_N}{s-s_N}
+\]
+The impulse response of the equivalent discrete system is therefore:
+\[
+\hat{h}_d(n)=A_1e^{s_1n\Delta t}+A_2e^{s_2n\Delta t}+\dots+A_Ne^{s_N\Delta t}
+\]
+The corresponding transfer function is:
+\[
+\hat{H}_d(z)=A_1\frac{z}{z-z_1}+A_2\frac{z}{z-z_2}+\dots+A_N\frac{z}{z-z_N}
+\]
+\[
+=A_1\frac{z}{z-e^{s_1n\Delta t}}+A_2\frac{z}{z-e^{s_2n\Delta t}}+\dots+A_N\frac{z}{z-e^{s_Nn\Delta t}}
+\]
+Thus, in summary, the impulse-invariance conversion method is simply a pole relocation procedure, moving the poles from the \textit{s-plane} to the \textit{z-plane} according to the mapping relationship:
+\[
+z_0=e^{s_0\Delta t}
+\]
+One unique step of this procedure is the requirement of a partial-fraction expansion process.
+
+\section{The DC Component}
+As usual, the first step is to examine the mapping relationship from the pole \(s=0\) to the \(z\)-plane, which represents the conversion of the DC term from the continuous-time format format to the discrete-time. For \(s=0\), it maps to the pole \(z=1\):
+\[
+z=e^{s\Delta t}=1
+\]
+This illustrates the consistency of the conversion in mapping a DC component in continuous time to a DC component in discrete time.
+
+\section{The \(j\omega\) Axis}
+In continuous time, the components along the \(j\omega\) axis represent the periodic waveforms without damping or amplitude gain, which is an important feature to retain. Thus, the second step is to examine the mapping of the \(j\omega\) axis. For \(s=j\omega\), the correspondence over the \(z\)-plane is:
+\[
+z=e^{j\omega\Delta t}=e^{j\psi}
+\]
+Because \(|z|=1\), it shows the \(j\omega\) axis is mapped to the unit circle, where the sinusoidal nature of the waveforms is retained. Because the phase term of the mapping has the property of \((mod \ 2\pi)\), ambiguity exists:
+\[
+\psi = (\omega\Delta t)_{mod \ 2\pi}
+\]
+This implies the mapping of the \(j\omega\) axis involves a periodic folding, wrapping around the unit circle at the rate of:
+\[
+\omega_0=\frac{2\pi}{\Delta t}
+\]
+All the frequency components, \(\omega=k\omega_0=\frac{k2\pi}{\Delta t}\). are mapped to \(z=1\). This repetitive behavior comes from the sampling of the waveform in the time domain.
+\section{Stability Consideration}
+Now, we consider an arbitrary location over the \(s\)-plane:
+\[
+s=a+j\omega
+\]
+According to the mapping formula, the pole relocation gives:
+\[
+z=e^{s\Delta t}=e^{\alpha\Delta t}e^{j\omega\Delta t}
+\]
+The amplitude of \(z\) is therefore:
+\[
+|z|=e^{\alpha\Delta t}
+\]
+Because the sample spacing \(\Delta t\) is a real and positive scalar, when \(\alpha\) is positive, the amplitude is greater than unity. Similarly, when \(\alpha\) is negative, the amplitude is smaller than unity. This means the left half of the \(s\)-plane is mapped to the region inside the unit circle. Therefore, the stability of the system is properly retained.
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Analog System} & j$\omega$ axis ($s = j\omega$) & left-half $s$-plane & right-half $s$-plane \\ \hline
+\textbf{Discrete System} & unit circle ($|z| = 1$) & inside unit circle & outside unit circle \\ \hline
+\end{tabular}
+\end{table}
+
+\section{Example}
+Consider the example used in the previous section, of which the defining differential equation is a first-order system:
+\[
+\frac{d}{dt}y(t)-ay(t)=Ax(t)
+\]
+This system has one single pole at \(s=a\), and the transfer function is:
+\[
+H_a(s)=\frac{A}{s-a}
+\]
+And the impulse response of this analog system is:
+\[
+h_a(t)=Ae^{at}u(t)
+\]
+According to the impulse-invariance, the impulse response of the discrete system:
+\[
+h_d(n)=Ae^{an\Delta t}u(n)=A(e^{a\Delta t})^nu(n)
+\]
+The corresponding transfer function is thus:
+\[
+\hat{H}_d(z)=\frac{Az}{z-e^{a\Delta t}}
+\]
+And the associated difference equation is:
+\[
+y(n)-e^{a\Delta t}y(n-1)=Ax(n)
+\]
+\newpage
+\section{Summary}
+\begin{enumerate}
+    \item The steps of the procedure for system conversion are:
+    \begin{enumerate}[label=\alph*.]
+        \item Formulate the transfer function of the analog system in the form of partial-fraction expansion:
+        \[
+        H_a(s)=\frac{A_1}{s-s_1}+\frac{A_2}{s-s_2}+\dots+\frac{A_N}{s-s_N}
+        \]
+        \item Relocate the poles \(\{s_1,s_2,\dots,s_N\}\) to a new set of poles \(\{z_1,z_2\dots,z_N\}\) on the \(z\)-plane according to the conversion formula:
+        \[
+        z=e^{s\Delta t}
+        \]
+        \item Combine the terms and formulate the transfer function \(\hat{H}_d(z)\) with the same coefficients:
+        \[
+        \hat{H}_d(z)=A_1\frac{z}{z-z_1}+A_2\frac{z}{z-z_2}+\dots+A_N\frac{z}{z-z_N}
+        \]
+        \[
+        =A_1\frac{z}{z-e^{s_1n\Delta t}}+A_2\frac{z}{z-e^{s_2n\Delta t}}+\dots+A_N\frac{z}{z-e^{s_Nn\Delta t}}
+        \]
+    \end{enumerate}
+    \item The sampling rate is a governing parameter of the conversion.
+    \item The system stability is retained by the conversion.
+    \item Partial-fraction expansion is required in the conversion procedure.
+    \item The pole relocation is in the form in comparison with the equation conversion technique.
+    \begin{table}[h]
+    \centering
+    \begin{tabular}{|c|c|}
+    \hline
+    \textbf{Conversion Method} & \textbf{Relocation of Poles} \\ \hline
+    Conversion of Operators & 
+    $z = \dfrac{1}{1 - s\Delta t}$ \\ \hline
+    Impulse Invariance & 
+    $z = e^{s\Delta t}$ \\ \hline
+    \end{tabular}
+    \end{table}
+    \item The system components before and after the conversion are tabulated as follows:
+    \begin{table}[h]
+\centering
+\begin{tabular}{|c|c|}
+\hline
+\textbf{Continuous-Time System} & \textbf{Discrete-Time System} \\ \hline
+
+\textbf{Differential Equation} &
+\textbf{Difference Equation} \\
+
+$\dfrac{d}{dt}y(t) - a\,y(t) = A\,x(t)$
+&
+$y(n) - e^{a\Delta t} y(n-1) = A\,x(n)$
+\\ \hline
+
+\textbf{Transfer Function} &
+\textbf{Transfer Function} \\
+
+$H_a(s) = \dfrac{A}{s-a}$
+&
+$\hat{H}_d(z) = \dfrac{A z}{z - e^{a\Delta t}}$
+\\ \hline
+
+\textbf{Impulse Response} &
+\textbf{Impulse Response} \\
+
+$h_a(t) = A e^{at} u(t)$
+&
+$h_d(n) = A \left(e^{a\Delta t}\right)^n u(n)$
+\\ \hline
+
+\end{tabular}
+\end{table}
+\end{enumerate}
+
+\end{document}
