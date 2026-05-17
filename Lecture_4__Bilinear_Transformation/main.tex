@@ -1,0 +1,287 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+
+\title{Lecture 4: Bilinear Transformation}
+\author{Andy Chen}
+\date{May 2026}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+\textit{Bilinear transformation} is a simple conformal mapping method, converting the two-dimensional \(s\)-plane to the \(z\)-plane. The mapping formula is in the general form:
+\[
+z=\frac{as+b}{cs+d}
+\]
+where \(a, b, c\), and \(d\) are the coefficients of the mapping scheme. It is called a bilinear transformation because both the numerator and denominator are first-order polynomials of \(s\). The coefficients can vary depending on the objectives or applications.
+
+\section{The DC Component}
+When it comes to filter design, there are several common constraints. The first is the mapping relationship from \(s=0\) to \(z=1\), which converts the DC term from the continuous-time format to the discrete-time. For \(s=0\), it maps to:
+\[
+z=\frac{b}{d}=1
+\]
+Thus, in order to satisfy the constraint, two of the four coefficients, \(b\) and \(d\), need to be identical:
+\[
+b=d
+\]
+As a result, the number of coefficients of the conversion is now reduced to just three in the form:
+\[
+z=\frac{as+b}{cs+b}
+\]
+
+\section{The \(j\omega\)-axis and the Unit Circle}
+After the mapping of the DC components, we examine the mapping correspondence between the \(j\omega\)-axis and the unit circle, since they are associated with the sinusoidal waveforms. To start, we check the mapping of the end points of the \(j\omega\)-axis, \(s=\pm j\infty\), to the far end of the unit circle \(z=e^{\pm j\pi}=-1\). This leads to the relationship:
+\[
+z=\frac{a}{c}=-1
+\]
+This means the coefficients of the first-order terms in both the numerator and denominator are off by just a sign:
+\[
+a=-c
+\]
+After simple rescaling, the bilinear transform can be reformatted and written in the form:
+\[
+z=\frac{\beta+s}{\beta-s}
+\]
+This implies the number of coefficients is now down to just one. We then examine the detailed mapping relationship between the \(j\omega\)-axis and the unit circle. When \(s=j\omega\), we have:
+\[
+z=\frac{\beta+j\omega}{\beta-j\omega}
+\]
+The subsequent step is to double-check the magnitude of \(z\):
+\[
+|z|=\frac{\sqrt{\beta^2+\omega^2}}{\sqrt{\beta^2+\omega^2}}=1
+\]
+Thus, it shows the \(j\omega\)-axis does map to the unit circle, which is an important property that sinusoidal waveforms are mapped to sinusoidal sequences. In addition:
+\[
+z=\frac{\beta+j\omega}{\beta-j\omega}=\frac{\sqrt{\beta^2+\omega^2}e^{j\tan^{-1}(\frac{\omega}{\beta})}}{\sqrt{\beta^2+\omega^2}e^{-j\tan^{-1}(\frac{\omega}{\beta})}}=e^{j\theta}
+\]
+Thus, we arrive at the important mapping relationship between \(\omega\) to \(\theta\):
+\[
+\theta=2\tan^{-1}\bigg(\frac{\omega}{\beta}\bigg)
+\]
+And the mapping from \(\theta\) back to \(\omega\) is in the form:
+\[
+\omega=\beta\tan^{-1}\bigg(\frac{\theta}{2}\bigg)
+\]
+It maps the infinite interval \((-j\infty,+j\infty)\) to a finite interval \((-\pi,+\pi\) in a nonlinear manner. The key parameter governing the mapping is \(\beta\):
+\[
+\beta=\frac{\omega}{\tan(\frac{\theta}{2})}
+\]
+This real and positive scalar \(\beta\) governs the correspondence between the analog frequency \(\omega\) and the discrete frequency \(\theta\). The value of \(\beta\) can be determined from the selected correspondence of a pair of frequencies \((\omega_0,\theta_0)\). For example, if \(\theta_0\) is selected as the midpoint of the positive frequency band, \(\theta_0=\frac{\pi}{2}\), the value of \(\beta\) is:
+\[
+\beta=\omega_0
+\]
+Thus, the value of \(\beta\) can be determined by simply inspecting the analog frequency \(\omega_0\) corresponding to the discrete frequency \(\theta_0=\frac{\pi}{2}\).
+
+\section{Mapping from the \(z\)-plane back to the \(s\)-plane}
+Reorganizing the bilinear mapping formula:
+\[
+z=\frac{\beta+s}{\beta-s}
+\]
+we find the relationship:
+\[
+\beta z-zs=\beta+s
+\]
+Thus, the alternative form of the transformation can be written as:
+\[
+s=\beta\frac{z-1}{z+1}
+\]
+It should be pointed out that this formula, although seemingly different, represents exactly the same mapping relationship. This form is extremely useful when we apply simple substitution to convert an analog filter \(H(s)\) to the discrete equivalent \(\hat{H}(z)\).
+\[
+\hat{H}(z)=H(s)|_{s=\beta\frac{z-1}{z+1}}
+\]
+This chart summarizes the mapping relationships of the bilinear transformation.
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{$s/z$ Conversion} & \textbf{Frequency Mapping} & \textbf{Scaling Factor} & \textbf{$z/s$ Conversion} \\ \hline
+
+$z = \dfrac{\beta+s}{\beta-s}$
+&
+$\theta = 2\tan^{-1}\!\left(\dfrac{\omega}{\beta}\right)$
+&
+$\beta = \dfrac{\omega}{\tan(\theta/2)}$
+&
+$s = \beta \dfrac{z-1}{z+1}$
+\\ \hline
+
+\end{tabular}
+\end{table}
+
+\section{Stability Consideration}
+One of the most critical filter design criteria is system stability. For any analog-digital system conversion technique, the retention of system stability is crucial to the applicability of the approach. Because the conversion of the bilinear transformation is through substitution, a pole at \(s=s_0\) of the analog filter will be relocated to a new pole location over the \(z\)-plane at:
+\[
+z=z_0=\frac{\beta+s_0}{\beta-s_0}
+\]
+For a complex variable \(s\):
+\[
+s=\alpha+j\omega
+\]
+the negative real part, \(\alpha<0\), represents the left-half plane. And similarly, \(\alpha>0\) is the right-half plane. As the bilinear transform maps the complex variable from the \(s\)-plane to the \(z\)-plane, the relocation procedure moves it to a new location:
+\[
+z=\frac{\beta+s}{\beta-s}=\frac{\beta+\alpha+j\omega}{\beta-\alpha-j\omega}
+\]
+Its magnitude is:
+\[
+|z|=\sqrt{\frac{(\beta+\alpha)^2+\omega^2}{(\beta-\alpha)^2+\omega^2}}
+\]
+Because \(\beta\) is a real and positive constant, when \(\alpha\) is negative, \(|z|\) is smaller than unity. This means the left half of the \(s\)-plane maps to the region inside the unit circle of the \(z\)-plane. Similarly, the right-half plane maps to the region outside the unit circle of the \(z\)-plane. Because the poles of an analog filter are located over the left-half plane. The bilinear transformation moves them inside the unit circle. As a result, the system stability is well retained through bilinear transformation.
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|}
+\hline
+\textbf{$s$-plane} & \textbf{$z$-plane} \\ \hline
+
+Left-half plane ($\alpha < 0$) 
+& 
+Inside the unit circle ($|z| < 1$) 
+\\ \hline
+
+$j\omega$-axis ($\alpha = 0$) 
+& 
+Unit circle ($|z| = 1$) 
+\\ \hline
+
+Right-half plane ($\alpha > 0$) 
+& 
+Outside the unit circle ($|z| > 1$) 
+\\ \hline
+
+\end{tabular}
+\end{table}
+
+\section{Example}
+Consider the first-order analog system in the example we studied previously:
+\[
+\frac{d}{dt}y(t)-ay(t)=Ax(t)
+\]
+The system's impulse response is:
+\[
+h_a(t)=Ae^{at}
+\]
+And the transfer function is:
+\[
+H_a(s)=\frac{A}{s-a}
+\]
+Through bilinear transformation, the transfer function of the equivalent discrete system is:
+\[
+\hat{H}_d(z)=\frac{A}{\beta\frac{z-1}{z+1}-a}
+\]
+\[
+=\frac{A(z+1)}{\beta(z-1)-a(z+1)}
+\]
+\[
+=\frac{A(z+1)}{(\beta-a)z-(\beta+a)}
+\]
+\[
+=\frac{A}{\beta-a}\cdot\frac{z+1}{z-\frac{\beta+a}{\beta-a}}
+\]
+The defining difference equation of the discrete equivalent is in the form:
+\[
+y(n)-\bigg(\frac{\beta+a}{\beta-a}\bigg)y(n-1)=\frac{A}{\beta-a}\cdot\bigg[x(n)+x(n-1)\bigg]
+\]
+Thus, the impulse response of the discrete system is:
+\[
+h_d(n)=\frac{A}{\beta-a}\cdot\bigg[\bigg(\frac{\beta+a}{\beta-a}\bigg)^nu(n)-\bigg(\frac{\beta+a}{\beta-a}\bigg)^{n-1}u(n-1)\bigg]
+\]
+\[
+=A\bigg(\frac{\beta+a}{\beta-a}\bigg)^n\cdot\bigg[\frac{1}{\beta-a}u(n)-\frac{1}{\beta+a}u(n-1)\bigg]
+\]
+\newpage
+\section{Summary}
+\begin{enumerate}
+    \item Bilinear transformation is a simple two-way conformal mapping between the \(s\)-plane and \(z\)-plane.
+    \item It maps the entire \(j\omega\) axis to the unit circle, and the mapping is nonlinear.
+    \item The mapping retains the system stability
+    \item Bilinear transformation technique is commonly used in the conversion of the transfer function.
+    \item The pole-relocation schemes of the three mapping methods are:
+    \begin{table}[h]
+    \centering
+    \begin{tabular}{|c|c|}
+    \hline
+    \textbf{Conversion Method} & \textbf{Relocation of Poles} \\ \hline
+
+    Conversion of Operators 
+    & 
+    $z = \dfrac{1}{1 - s\Delta t}$ 
+    \\ \hline
+
+    Impulse Invariance 
+    & 
+    $z = e^{s\Delta t}$ 
+    \\ \hline
+
+    Bilinear Transform 
+    & 
+    $z = \dfrac{\beta + s}{\beta - s}$ 
+    \\ \hline
+
+    \end{tabular}
+    \end{table}
+    \item The mapping correspondences of bilinear transformation are tabulated as follows:
+    \begin{table}[h]
+    \centering
+    \begin{tabular}{|c|c|}
+    \hline
+    \textbf{Bilinear Transform} & \textbf{Discrete-Time System} \\ \hline
+
+    Difference Equation
+    &
+    $y(n) - \left(\dfrac{\beta+a}{\beta-a}\right)y(n-1)
+    =
+    \dfrac{A}{\beta-a}\left[x(n)+x(n-1)\right]$
+    \\ \hline
+
+    Transfer Function
+    &
+    $\hat{H}_d(z)
+    =
+    \dfrac{A}{\beta-a}
+    \cdot
+    \dfrac{z+1}{
+    z-\dfrac{\beta+a}{\beta-a}}$
+    \\ \hline
+
+    Impulse Response
+    &
+    $h_d(n)
+    =
+    A\left(\dfrac{\beta+a}{\beta-a}\right)^n
+    \left[
+    \dfrac{1}{\beta-a}u(n)
+    -
+    \dfrac{1}{\beta+a}u(n-1)
+    \right]$
+    \\ \hline
+
+    \end{tabular}
+    \end{table}
+    \item There are also important characteristics of the three mapping techniques, due to the mathematical formulation of the conformal mapping:
+    \begin{table}[h]
+\centering
+\begin{tabular}{|c|c|}
+\hline
+\textbf{Conversion Methods} & \textbf{Important Mapping Characteristics} \\ \hline
+
+Conversion of Operators
+&
+the $j\omega$-axis does not map to the unit circle
+\\ \hline
+
+Impulse Invariance
+&
+ambiguity due to the periodic nature of the mapping
+\\ \hline
+
+Bilinear Transform
+&
+nonlinearity of the mapping
+\\ \hline
+
+\end{tabular}
+\end{table}
+    \end{enumerate}
+
+\end{document}
