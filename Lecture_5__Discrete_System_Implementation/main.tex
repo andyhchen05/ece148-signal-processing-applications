@@ -1,0 +1,291 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+
+\title{Lecture 5: Discrete System Implementation}
+\author{Andy Chen}
+\date{May 2026}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+In this section, several simple digital signal processing techniques are presented to illustrate the practical applications based on the original concepts in the continuous-time domain.
+\\
+\\
+The discrete versions are implemented through the equation-conversion technique as well as the impulse-invariance method. The use of the bilinear transformation for digital filter design will be presented later, after the introduction of Butterworth and Chebyshev filters.
+
+\section{Change Detection}
+The most logical and practical approach to change detection is differentiation. And the simplest example is the first-order differentiation, as shown:
+\[
+y(t)=c\frac{d}{dt}x(t)
+\]
+where \(c\) is a real and positive scaling factor. The frequency response of this simple operator is:
+\[
+H(j\omega)=c\cdot j\omega
+\]
+The magnitude of the frequency response is a linear function of the frequency:
+\[
+|H(j\omega)|=c\cdot|\omega|
+\]
+Thus, the operator is known as a high-pass filter, enhancing the high-frequency components linearly.
+\\
+\\
+Recognizing the definition of the differentiation operator:
+\[
+\frac{d}{dt}x(t)=\lim_{\Delta t\rightarrow0}\frac{x(t)-x(t-\Delta t)}{\Delta t}
+\]
+in the discrete mode, we can interpret it as the difference between two adjacent pixels and rewrite it in the form of a difference equation:
+\[
+y(n)=\hat{c}[x(n)-x(n-1)]
+\]
+where \(\hat{c}\) is a scaling factor for a similar purpose. The corresponding transfer function is:
+\[
+\hat{H}(z)=\hat{c}(1-z^{-1})
+\]
+and the frequency response is:
+\[
+\hat{H}(e^{j\theta})=\hat{c}(1-e^{-j\theta})
+\]
+\[
+=\hat{c}e^{-j\theta/2}(e^{j\theta/2}-e^{-j\theta/2)}
+\]
+\[
+=2j\hat{c}e^{-j\theta/2}\sin(\theta/2)
+\]
+The magnitude of the frequency response also shows a high-pass operation:
+\[
+|H(e^{j\theta})|=2\hat{c}|sin(\theta/2)| \qquad \text{for }-\pi\leq\theta\leq+\pi 
+\]
+Associated with the transfer function, the impulse response is:
+\[
+h(n)=\hat{c}[\delta(n)-\delta(n-1)]
+\]
+\\
+\\
+The concept of differentiation has been the core element of change detection. And, based on the mathematical structure of the impulse response, in one-dimensional change detection, the normalized operator is commonly represented in the single matrix form:
+\[
+A=[-1,+1]
+\]
+Equivalent to the convolution with the impulse response of the change detector, we glide this simple 2-pixel operator through a given sequence, which produces the \textit{change profile}. For symmetry, the change-detection operator can be modified into the 3-pixel format. This is to compute for the difference between two neighboring pixels:
+\[
+B=[-1,0,+1]
+\]
+which corresponds to the difference equation:
+\[
+y(n)=\hat{c}[x(n)-x(n-1)]
+\]
+and equivalent to the differential operator:
+\[
+\frac{d}{dt}x(t)=\lim_{\Delta t\rightarrow0}\frac{x(t)-x(t-\Delta t)}{\Delta t}
+\]
+
+\section{Edge Detection in Image Analysis}
+Edge detection is one of the most common operators in image processing for the purpose of image enhancement. The simplest form of edge-detection operator in image processing is the \(2\times2\) operator for the first-order edge detection. In the horizontal direction, it is in the form:
+\[
+C=
+\begin{bmatrix}
+-1 & +1 \\
+-1 & +1
+\end{bmatrix}
+\]
+The \(3\times3\) first-order edge detector has been widely applied because of this symmetry:
+\[
+D=
+\begin{bmatrix}
+-1&0&+1\\
+-1&0&+1\\
+-1&0&+1
+\end{bmatrix}
+\]
+Over the years, various weighting schemes have been utilized to modify the matrix operators in different applications for improved effectiveness. One of the most common versions is smaller weighting scale for the four farther pixels at the corners:
+\[
+E=
+\begin{bmatrix}
+-\frac{1}{\sqrt2}&0&+\frac{1}{\sqrt2}\\
+-1&0&+1\\
+-\frac{1}{\sqrt2}&0&+\frac{1}{\sqrt2}
+\end{bmatrix}
+\]
+Similarly, the weighted \(3\times3\) first-order edge detection in the vertical direction is in the form:
+\[
+F=
+\begin{bmatrix}
++\frac{1}{\sqrt2}&+1&+\frac{1}{\sqrt2}\\
+0&0&0\\
+-\frac{1}{\sqrt2}&-1&-\frac{1}{\sqrt2}
+\end{bmatrix}
+\]
+For improved efficiency, we can combine edge-detection operators and formulate it in the complex form:
+\[
+G = E+jF
+\]
+\[
+=
+\begin{bmatrix}
+-\frac{1}{\sqrt2}&0&+\frac{1}{\sqrt2}\\
+-1&0&+1\\
+-\frac{1}{\sqrt2}&0&+\frac{1}{\sqrt2}
+\end{bmatrix}
++j
+\begin{bmatrix}
++\frac{1}{\sqrt2}&+1&+\frac{1}{\sqrt2}\\
+0&0&0\\
+-\frac{1}{\sqrt2}&-1&-\frac{1}{\sqrt2}
+\end{bmatrix}
+\]
+\[
+=
+\begin{bmatrix}
+\frac{-1+j}{\sqrt2}&+j&\frac{1+j}{\sqrt2}\\
+-1&0&+1\\
+\frac{-1-j}{\sqrt2}&-j&\frac{1-j}{\sqrt2}
+\end{bmatrix}
+\]
+\[
+=
+\begin{bmatrix}
+e^{j\frac{3\pi}{4}}&j&e^{j\frac{\pi}{4}}\\
+-1&0&+1\\
+e^{j\frac{5\pi}{4}}&j&e^{j\frac{7\pi}{4}}
+\end{bmatrix}
+\]
+This operator produces a complex profile. The real part is the edge profile in the horizontal direction, and the imaginary part is the profile in the vertical direction. This processing is often referred to as the \textit{gradient operator}, of which the vector form is:
+\[
+y(\alpha,\beta)=c\cdot\bigg[\frac{d}{d\alpha}x(\alpha,\beta),\ \frac{d}{d\beta}x(\alpha,\beta)\bigg]
+\]
+It is interesting to note that the weightings for the eight surrounding pixels are in the form of the neighboring pixels' angular positions:
+\[
+w_n=e^{jn\Delta\theta}=e^{jn\frac{2\pi}{8}}=e^{jn\frac{\pi}{4}}
+\]
+where \(n=0,1,\dots,7\).
+
+\section{Peak Detection}
+The concept for peak detection derives from the second-order derivative:
+\[
+y(t)=c\frac{d^2}{dt^2}x(t)
+\]
+The frequency response is:
+\[
+H(j\omega)=-c\cdot\omega^2
+\]
+And the corresponding transfer function of the equivalent operation in the discrete format is:
+\[
+\hat{H}(z)=\hat{c}(1-z^{-1})^2=-\hat{c}(1-2z^{-1}+z^{-2})
+\]
+The symmetrical version, which is commonly used in various applications, is in the form:
+\[
+\hat{H}(z)=-\hat{c}(-z+2-z^{-1})
+\]
+corresponding to the difference equation:
+\[
+h(n)=-\hat{c}[-\delta(n+1)+2\delta(n)-\delta(n-1)]
+\]
+By extending the concept, we can formulate the normalized second-order change-detection operator as:
+\[
+P_3=[-\frac{1}{2},+1,-\frac{1}{2}]
+\]
+Conceptually, it can be described as the difference between the value at the center pixel and the average value of the neighboring pixels. Based on this concept, the \(3\times3\) peak-detection operator is in the form:
+\[
+P_{3\times3}=\frac{1}{8}
+\begin{bmatrix}
+-1&-1&-1\\
+-1&+8&-1\\
+-1&-1&-1
+\end{bmatrix}
+\]
+This process is equivalent to the \textit{Laplacian operator}:
+\[
+y(\alpha,\beta)=c\cdot\Delta^2x(\alpha,\beta)
+\]
+\[
+=c\cdot\bigg(\frac{d^2}{d\alpha^2}x(\alpha,\beta)+\frac{d^2}{d\beta^2}x(\alpha,\beta)\bigg)
+\]
+where \(\alpha\) and \(\beta\) denote the defining variables of the horizontal and vertical direction. We can also extend the concept with smaller weightings for the four farther pixels and rewrite it in the form:
+\[
+Q_{3\times3}=\frac{1}{6}
+\begin{bmatrix}
+-\frac{1}{2}&-1&-\frac{1}{2}\\
+-1&+6&-1\\
+-\frac{1}{2}&-1&-\frac{1}{2}
+\end{bmatrix}
+\]
+
+\section{Moving-Average Filters}
+Moving-average filtering is a convolution process, and the impulse response is a finite-duration pulse function with pulse duration \(d\):
+\[
+h(t)=
+\begin{cases}
++\frac{1}{d} & 0\leq t\leq d\\
+0 & \text{otherwise}
+\end{cases}
+\]
+The magnitude of the pulse is set to \(\frac{1}{d}\) such that the total area underneath the pulse is unity. The low-pass frequency response is:
+\[
+H(j\omega)=e^{j\omega\frac{d}{2}}\mathrm{sinc}\bigg(\frac{\omega d}{2}\bigg)
+\]
+According to the impulse-invariance conversion method, the impulse response of the discrete system is in the form:
+\[
+h(n)=
+\begin{cases}
++\frac{1}{N}&0\leq n\leq N-1\\
+0&\text{otherwise}
+\end{cases}
+\]
+And the low-pass frequency response is:
+\[
+\hat{H}(e^{j\theta})=e^{-j(N-1)\frac{\theta}{2}}\frac{\sin(\frac{N\theta}{2})}{N\sin(\frac{\theta}{2})} \qquad \text{for }-\pi\leq\theta\leq+\pi
+\]
+Therefore, the convolution kernel of an \(N\)-point moving-average filter is:
+\[
+m_N=\frac{1}{N}[1,1,1,\dots,1,1]
+\]
+It is to slide an \(N\)-point window along a sequence, and the output is the average value of the \(N\) pixels within the window. As an example, based on the concept, the matrix representation of the convolution kernel of the 3-point moving average filter is:
+\[
+m_3=\frac{1}{3}[1,1,1]
+\]
+It is common to give different weightings to the neighboring pixels. As an example of the weighted 3-point moving average operator is in the form:
+\[
+w_3=\frac{1}{4}[1,2,1]
+\]
+The moving-average filters have been widely used as an analysis tool in the finance community. Several versions, corresponding to \(N=5,20,\) and 65 associated with the number of trading days, are popularly used to produce the profiles, which are known as the weekly, monthly (4-week), and quarterly (13-week) lines. While we are computing for the average within the observation period, other statistical parameters can be calculated without significantly increasing the computation complexity. Using the mean, from the moving-average procedure, and the standard deviation to set the upper and lower bounds, a lane-like profile can be produced. The upper and lower bounds of the lane are known as the \textit{Bollinger Bands}. Statistically, the probability of staying within the Bollinger Band is 67\%. This simple application turned out to be extremely useful for estimation and prediction in financial analysis.
+
+\section{Moving-Average Filters for Image Processing}
+The concept of moving-average filtering can be applied to image processing by extending the convolution kernel to an \(N\times N\) matrix. The \(2\times2\) moving-average filter for image processing is:
+\[
+M_{2\times2}=\frac{1}{4}
+\begin{bmatrix}
++1&+1\\
++1&+1
+\end{bmatrix}
+\]
+And similarly, the \(3\times3\) moving average filter is in the form:
+\[
+M_{3\times3}=\frac{1}{9}
+\begin{bmatrix}
++1&+1&+1\\
++1&+1&+1\\
++1&+1&+1
+\end{bmatrix}
+\]
+Then the weighted \(3\times3\) moving average filters can be written in the form:
+\[
+W_{3\times3}=\frac{1}{16}
+\begin{bmatrix}
++1&+2&+1\\
++2&+4&+2\\
++1&+2&+1
+\end{bmatrix}
+\]
+The frequency responses can vary in response to coefficient-weighting schemes. Yet, the low-pass characteristics remain largely the same.
+\newpage
+\section{Summary}
+\begin{enumerate}
+    \item Edge and peak detection techniques are high-pass enhancement methods commonly applied in image processing, commonly known as the \textit{gradient} and \textit{Laplacian} operators. These operators are equivalent to first and second-order \textit{differentiation operators} in the analog form.
+    \item Moving-average filtering is a low-pass filtering technique, converted through the \textit{impulse-invariance method}, corresponding to analog filters with finite-length impulse responses.
+    \item Different conversion techniques produce different discrete systems from the same analog system. Thus, the equivalent discrete system through the conversion of the differential equation is not the same as the one produced through the impulse-invariance method.
+    \item The sampling rate is a governing parameter in both the equation-conversion and impulse invariance methods.
+\end{enumerate}
+
+\end{document}
