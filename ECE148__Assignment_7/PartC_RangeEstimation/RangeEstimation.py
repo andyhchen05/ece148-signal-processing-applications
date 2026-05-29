@@ -4,75 +4,148 @@ from scipy.io import loadmat
 
 
 # Constants
+
 c = 3e8
 eps_r = 6.0
 v = c / np.sqrt(eps_r)
 
 
-# Load data
+# Load Data
+
 data = loadmat("gpr_data.mat")
-F    = data['F']             
-f    = data['f'].flatten()   
-da   = data['da'].flatten()  
 
-da = da - da.mean()        
+F  = data['F']              # Shape: (200, 128)
+f  = data['f'].flatten()
+da = data['da'].flatten()
 
-Nfreq, Npos = F.shape
+da = da - da.mean()
 
-
-# Frequency parameters
-B  = f[-1] - f[0]           
-df = f[1]  - f[0]
+Nf, Nx = F.shape
 
 
-# Zero-padded IFFT for finer range resolution
-Nfft = 2048                  
-range_profiles = np.fft.ifft(F, n=Nfft, axis=0)
-image = np.abs(range_profiles)
+# Range Direction
+
+Nfft_range = 1024
+
+# Range compression
+range_profiles = np.fft.ifft(F, n=Nfft_range, axis=0)
+
+# Keep first 43 range bins
+Nr_keep = 43
+
+range_profiles = range_profiles[:Nr_keep, :]
 
 
-# Depth axis  
-dt    = 1.0 / (df * Nfft)    
-time  = np.arange(Nfft) * dt
-depth = v * time / 2.0       
+# Construct depth axis
+
+df = f[1] - f[0]
+
+dt = 1.0 / (df * Nfft_range)
+
+time = np.arange(Nr_keep) * dt
+
+depth = v * time / 2.0
 
 
-# Gate out surface reflection
-gate_depth   = 0.00         
-gate_bins    = np.searchsorted(depth, gate_depth)
-image[:gate_bins, :] = 0
+# Interpolation Procedure (Range)
+
+Ninterp_range = 128
+
+range_interp = np.zeros((Ninterp_range, Nx), dtype=complex)
+
+for col in range(Nx):
+
+    x = range_profiles[:, col]
+
+    # FFT of 43-point sequence
+    X = np.fft.fftshift(np.fft.fft(x))
+
+    # Zero-padded spectrum
+    Xpad = np.zeros(Ninterp_range, dtype=complex)
+
+    start = (Ninterp_range - Nr_keep) // 2
+
+    Xpad[start:start + Nr_keep] = X
+
+    # Inverse FFT
+    x_interp = np.fft.ifft(np.fft.ifftshift(Xpad))
+
+    # Scale correction
+    x_interp *= Ninterp_range / Nr_keep
+
+    range_interp[:, col] = x_interp
 
 
-# Trim to 30 cm display depth
-max_depth  = 0.30
-valid      = depth <= max_depth
-depth_disp = depth[valid]
-image_disp = image[valid, :]
+# Interpolation Procedure (Horizontal)
+
+Ninterp_cross = 2048
+
+final_image = np.zeros((Ninterp_range, Ninterp_cross), dtype=complex)
+
+for row in range(Ninterp_range):
+
+    x = range_interp[row, :]
+
+    # FFT across aperture
+    X = np.fft.fftshift(np.fft.fft(x))
+
+    # Zero-pad spectrum
+    Xpad = np.zeros(Ninterp_cross, dtype=complex)
+
+    start = (Ninterp_cross - Nx) // 2
+
+    Xpad[start:start + Nx] = X
+
+    # Inverse FFT
+    x_interp = np.fft.ifft(np.fft.ifftshift(Xpad))
+
+    # Scale correction
+    x_interp *= Ninterp_cross / Nx
+
+    final_image[row, :] = x_interp
 
 
-# Normalize & log-compress
-image_disp = image_disp / np.max(image_disp)
-image_db   = 20 * np.log10(image_disp + 1e-6)
+image = np.abs(final_image)
+
+image /= np.max(image)
+
+image_db = 20 * np.log10(image + 1e-6)
 
 
-# Clip dB range for display contrast
-vmin, vmax = -40, 0     
+# Axes
+
+x_interp = np.linspace(da[0], da[-1], Ninterp_cross)
+
+depth_interp = np.linspace(depth[0], depth[-1], Ninterp_range)
 
 
-# Plot
-dx     = da[1] - da[0]                        
-dz     = depth_disp[1] - depth_disp[0]        
+# Display
 
-plt.figure(figsize=(12, 5))
-extent = [da[0], da[-1], depth_disp[-1], depth_disp[0]]
+plt.figure(figsize=(14, 6))
 
-plt.imshow(image_db, extent=extent, aspect='equal',
-           cmap='jet', vmin=vmin, vmax=vmax)
+extent = [
+    x_interp[0],
+    x_interp[-1],
+    depth_interp[-1],
+    depth_interp[0]
+]
+
+plt.imshow(
+    image_db,
+    extent=extent,
+    aspect='equal',
+    cmap='jet',
+    vmin=-40,
+    vmax=0
+)
 
 plt.xlabel("Distance Along Aperture (m)")
 plt.ylabel("Depth (m)")
-plt.title("GPR Image — Broida Hall Walkway")
-plt.colorbar(label="Intensity (dB)")
+
+plt.title("Image Reconstruction of Subsurface Profile")
+
 plt.tight_layout()
-plt.savefig("gpr_image.png", dpi=150)
+
+plt.savefig("RangeEstimation.png", dpi=150)
+
 plt.show()
